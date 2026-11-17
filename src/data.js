@@ -5,9 +5,9 @@
 export const TOTAL_KM = 2865;
 
 // XP acumulado necesario para el nivel 100 (y para llegar al Monte del Destino).
-// Sale de ~548 XP/semana (645 XP máx. con 3 días de ejercicio × 85 %) durante
-// las ~68 semanas que lleva la ruta a ~8.000 pasos al día.
-export const XP_MAX = 37400;
+// Sale de 160 XP/día (las 7 misiones hechas cada día) × 7 = 1.120 XP/semana
+// durante las ~68 semanas que lleva la ruta a ~8.000 pasos al día. Sin margen.
+export const XP_MAX = 76400;
 
 // XP acumulado de un nivel n = XP_MAX × (n/100)^EXPONENTE.
 export const EXPONENTE = 1.5;
@@ -49,6 +49,19 @@ export const MISIONES = [
   { id: 'ejercicio', nombre: 'Ejercicio', detalle: 'Sesión completa', xp: 40 },
   { id: 'ingles', nombre: 'Inglés', detalle: 'Sesión del día', xp: 25 },
   { id: 'chino', nombre: 'Chino', detalle: 'Lección de Duolingo', xp: 25 },
+  { id: 'ia', nombre: 'IA', detalle: 'Sesión de curso de IA', xp: 25 },
+  { id: 'escritura', nombre: 'Escritura', detalle: 'Has escrito ese día', xp: 20 },
   { id: 'lectura', nombre: 'Lectura', detalle: 'Has leído hoy', xp: 15 },
   { id: 'agua', nombre: 'Agua', detalle: 'Meta de agua del día', xp: 10 },
 ];
+
+// Penalizaciones: se marcan como una tarea y restan XP, pero nunca por debajo
+// del inicio del nivel que ya tienes (el nivel no baja).
+export const PENALIZACIONES = [
+  { id: 'bebida', nombre: 'Bebida', detalle: 'Bebida azucarada', xp: 40 },
+  { id: 'anillo', nombre: 'Anillo', detalle: 'Uso del anillo', xp: 120 },
+];
+
+// Medallas por días limpios (sin marcar la penalización): primero muy juntas,
+// luego una por cada mes (30 días) sin límite.
+export const MEDALLAS_FIJAS = [1, 2, 3, 5, 7, 14, 21, 30];

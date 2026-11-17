@@ -1,5 +1,14 @@
 // Lógica pura del juego (sin DOM ni plugins) para poder probarla con node.
-import { HITOS, MISIONES, TOTAL_KM, XP_MAX, EXPONENTE, PASO_M_DEFECTO } from './data.js';
+import {
+  HITOS,
+  MISIONES,
+  PENALIZACIONES,
+  MEDALLAS_FIJAS,
+  TOTAL_KM,
+  XP_MAX,
+  EXPONENTE,
+  PASO_M_DEFECTO,
+} from './data.js';
 
 const EPS = 1e-6;
 
@@ -62,8 +71,66 @@ export function missionXp(done) {
   return MISIONES.reduce((sum, m) => sum + (done[m.id] ? m.xp : 0), 0);
 }
 
+export function penaltyXp(done) {
+  if (!done) return 0;
+  return PENALIZACIONES.reduce((sum, m) => sum + (done[m.id] ? m.xp : 0), 0);
+}
+
+// XP total repasando los días en orden. Cada día suma primero las misiones y
+// después resta las penalizaciones, sin bajar del inicio del nivel alcanzado.
+// Así el nivel nunca baja y corregir un día pasado recalcula todo bien.
 export function totalXp(missions) {
-  return Object.values(missions || {}).reduce((sum, d) => sum + missionXp(d), 0);
+  let xp = 0;
+  for (const date of Object.keys(missions || {}).sort()) {
+    const dia = missions[date];
+    xp += missionXp(dia);
+    const pen = penaltyXp(dia);
+    if (pen > 0) xp = Math.max(xp - pen, xpForLevel(levelFromXp(xp)));
+  }
+  return xp;
+}
+
+// ---------- Medallas por días limpios ----------
+
+export function umbralMedalla(i) {
+  if (i < MEDALLAS_FIJAS.length) return MEDALLAS_FIJAS[i];
+  return 30 * (i - MEDALLAS_FIJAS.length + 2); // 60, 90, 120...
+}
+
+export function etiquetaMedalla(dias) {
+  if (dias === 1) return '1 día';
+  if (dias < 7) return `${dias} días`;
+  if (dias < 30) return dias === 7 ? '1 semana' : `${dias / 7} semanas`;
+  const m = dias / 30;
+  return m === 1 ? '1 mes' : `${m} meses`;
+}
+
+const diasEntre = (a, b) => {
+  const f = (x) => Date.UTC(+x.slice(0, 4), +x.slice(5, 7) - 1, +x.slice(8, 10));
+  return Math.round((f(b) - f(a)) / 86400000);
+};
+
+// Racha de días limpios de una marca (bebida / anillo). Un día cuenta como
+// limpio cuando ya ha terminado sin marca; hoy todavía no cuenta.
+export function racha(missions, startDate, todayISO, id) {
+  const marcas = Object.keys(missions || {})
+    .filter((d) => missions[d]?.[id] && d >= startDate && d <= todayISO)
+    .sort();
+  let best = 0;
+  let desde = startDate; // primer día potencialmente limpio del tramo actual
+  for (const m of marcas) {
+    best = Math.max(best, diasEntre(desde, m));
+    const sig = new Date(`${m}T12:00:00Z`);
+    sig.setUTCDate(sig.getUTCDate() + 1);
+    desde = sig.toISOString().slice(0, 10);
+  }
+  const current = Math.max(0, diasEntre(desde, todayISO));
+  best = Math.max(best, current);
+  const ganadas = [];
+  let i = 0;
+  while (umbralMedalla(i) <= best) ganadas.push(umbralMedalla(i++));
+  const siguiente = umbralMedalla(i);
+  return { current, best, ganadas, siguiente, faltan: siguiente - current };
 }
 
 // Meta de bebida: 35 ml/kg de líquidos totales, menos ~20 % que aporta la
@@ -75,11 +142,21 @@ export function waterGoalL(weightKg, exerciseDone) {
 
 // ---------- Estado ----------
 
+// Lleva una copia guardada (v1 o v2) al formato actual sin perder nada.
+export function migrate(saved, todayISO) {
+  const base = newState(saved?.startDate || todayISO);
+  if (!saved) return base;
+  const out = { ...base, ...saved, v: 2 };
+  if (saved.v === 1 && saved.weightSet === undefined) out.weightSet = true;
+  return out;
+}
+
 export function newState(todayISO) {
   return {
-    v: 1,
+    v: 2,
     startDate: todayISO,
-    weightKg: 92,
+    weightKg: 70, // valor neutro hasta que se indique el peso real
+    weightSet: false,
     stepLengthM: PASO_M_DEFECTO,
     bankSteps: false, // guardar en reserva los pasos que sobran con la puerta cerrada
     km: 0,

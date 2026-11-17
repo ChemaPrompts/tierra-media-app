@@ -1,7 +1,7 @@
 import './style.css';
 import { cargar, guardar } from './storage.js';
 import * as G from './game.js';
-import { MISIONES } from './data.js';
+import { MISIONES, PENALIZACIONES } from './data.js';
 import * as P from './steps.js';
 
 const $ = (s) => document.querySelector(s);
@@ -12,6 +12,7 @@ const fmtL = (n) => n.toLocaleString('es-ES', { minimumFractionDigits: 1, maximu
 let state;
 let vista = 'camino';
 let dia = 'hoy';
+let marca = 'anillo';
 let sync = { ok: null, texto: 'Aún sin sincronizar', falta: false };
 let ocupado = false;
 let irAlActual = true;
@@ -70,6 +71,7 @@ function pintarVista() {
   const scroll = contenedor.scrollTop;
   if (vista === 'camino') contenedor.innerHTML = vistaCamino();
   else if (vista === 'misiones') contenedor.innerHTML = vistaMisiones();
+  else if (vista === 'medallas') contenedor.innerHTML = vistaMedallas();
   else contenedor.innerHTML = vistaAjustes();
   if (vista === 'camino' && irAlActual) {
     irAlActual = false;
@@ -131,20 +133,53 @@ function vistaMisiones() {
   const hechas = state.missions[fecha] || {};
   const meta = G.waterGoalL(state.weightKg, !!hechas.ejercicio);
   const maxXp = MISIONES.reduce((a, m) => a + m.xp, 0);
-  const filas = MISIONES.map((m) => {
+  const fila = (m, resta) => {
     const detalle = m.id === 'agua' ? `Beber ${fmtL(meta)} L (sin contar la comida)` : m.detalle;
-    return `<button class="mision ${hechas[m.id] ? 'hecha' : ''}" data-mision="${m.id}">
+    return `<button class="mision ${resta ? 'penal' : ''} ${hechas[m.id] ? 'hecha' : ''}" data-mision="${m.id}">
       <span class="check">${hechas[m.id] ? '✔' : ''}</span>
       <span class="txt"><b>${m.nombre}</b><small>${detalle}</small></span>
-      <span class="xpchip">+${m.xp} XP</span></button>`;
-  }).join('');
+      <span class="xpchip">${resta ? '−' : '+'}${m.xp} XP</span></button>`;
+  };
+  const filas = MISIONES.map((m) => fila(m, false)).join('');
+  const penal = PENALIZACIONES.map((m) => fila(m, true)).join('');
+  const pen = G.penaltyXp(hechas);
+  const aviso = pen > 0 ? ` · penalizaciones −${pen}` : '';
+  const pesoTarjeta = state.weightSet
+    ? ''
+    : `<section class="tarjeta"><h3>Tu peso</h3>
+        <p class="nota">Sirve para calcular tu meta de agua. Puedes cambiarlo luego en Ajustes.</p>
+        <div class="fila-form"><input id="pesoInicial" type="number" inputmode="decimal" min="30" max="250" step="0.1" placeholder="kg" />
+        <button data-accion="guardar-peso">Guardar</button></div></section>`;
   return `
+    ${pesoTarjeta}
     <div class="chips">
       <button data-dia="hoy" class="${dia === 'hoy' ? 'activo' : ''}">Hoy</button>
       <button data-dia="ayer" class="${dia === 'ayer' ? 'activo' : ''}">Ayer</button>
     </div>
     <section class="tarjeta">${filas}</section>
-    <p class="nota centro">XP de este día: ${G.missionXp(hechas)} / ${maxXp}</p>`;
+    <section class="tarjeta">${penal}</section>
+    <p class="nota centro">XP de este día: ${G.missionXp(hechas)} / ${maxXp}${aviso}</p>`;
+}
+
+function vistaMedallas() {
+  const r = G.racha(state.missions, state.startDate, hoy(), marca);
+  const dias = (n) => (n === 1 ? '1 día' : `${n} días`);
+  const titulo = marca === 'anillo' ? 'Días sin el anillo' : 'Días sin bebida';
+  const ganadas = r.ganadas.length
+    ? r.ganadas.map((d) => `<span class="medalla">🏅 ${G.etiquetaMedalla(d)}</span>`).join('')
+    : '<span class="nota">Aún no hay medallas.</span>';
+  return `
+    <div class="chips">
+      <button data-marca="anillo" class="${marca === 'anillo' ? 'activo' : ''}">Anillo</button>
+      <button data-marca="bebida" class="${marca === 'bebida' ? 'activo' : ''}">Bebida</button>
+    </div>
+    <section class="tarjeta centro">
+      <small>${titulo}</small>
+      <div class="gran">${r.current}</div>
+      <p class="nota">Mejor racha: ${dias(r.best)}</p>
+      <p>Siguiente medalla: <b>${G.etiquetaMedalla(r.siguiente)}</b> · faltan ${dias(r.faltan)}</p>
+    </section>
+    <section class="tarjeta"><h3>Conseguidas</h3><div class="medallas">${ganadas}</div></section>`;
 }
 
 function vistaAjustes() {
@@ -184,7 +219,7 @@ function vistaAjustes() {
       <p class="nota">Borra el progreso, las misiones y vuelve a Hobbiton.</p>
       <button data-accion="reiniciar">Reiniciar el viaje</button>
     </section>
-    <p class="nota centro">Tierra Media v0.1</p>`;
+    <p class="nota centro">Tierra Media v0.2</p>`;
 }
 
 // ---------- Pasos ----------
@@ -225,6 +260,9 @@ document.addEventListener('click', async (ev) => {
     if (vista === 'camino') irAlActual = true;
     $('#vista').scrollTop = 0;
     pintar();
+  } else if (t.dataset.marca) {
+    marca = t.dataset.marca;
+    pintar();
   } else if (t.dataset.dia) {
     dia = t.dataset.dia;
     pintar();
@@ -242,7 +280,10 @@ document.addEventListener('change', async (ev) => {
   const el = ev.target;
   if (el.name === 'peso') {
     const v = parseFloat(el.value);
-    if (v >= 30 && v <= 250) state.weightKg = v;
+    if (v >= 30 && v <= 250) {
+      state.weightKg = v;
+      state.weightSet = true;
+    }
   } else if (el.name === 'paso') {
     const v = parseFloat(el.value);
     if (v >= 0.4 && v <= 1.2) state.stepLengthM = v;
@@ -256,6 +297,15 @@ document.addEventListener('change', async (ev) => {
 async function accion(nombre) {
   if (nombre === 'sync') await sincronizar(false);
   else if (nombre === 'permiso') await sincronizar(true);
+  else if (nombre === 'guardar-peso') {
+    const v = parseFloat($('#pesoInicial').value);
+    if (v >= 30 && v <= 250) {
+      state.weightKg = v;
+      state.weightSet = true;
+      await guardarEstado();
+      pintar();
+    }
+  }
   else if (nombre === 'prueba-pasos') {
     const n = parseInt($('#pasosPrueba').value, 10);
     if (n > 0) {
@@ -275,8 +325,8 @@ async function accion(nombre) {
   } else if (nombre === 'importar') {
     try {
       const nuevo = JSON.parse($('#backup').value);
-      if (nuevo.v !== 1 || typeof nuevo.km !== 'number') throw new Error('formato');
-      state = { ...G.newState(hoy()), ...nuevo };
+      if (![1, 2].includes(nuevo.v) || typeof nuevo.km !== 'number') throw new Error('formato');
+      state = G.migrate(nuevo, hoy());
       await guardarEstado();
       backupTexto = '';
       pintar();
@@ -288,7 +338,14 @@ async function accion(nombre) {
     if (confirm('¿Seguro? Se borra todo el progreso y vuelves a Hobbiton.')) {
       const peso = state.weightKg;
       const paso = state.stepLengthM;
-      state = { ...G.newState(hoy()), weightKg: peso, stepLengthM: paso, permissionAsked: true };
+      const fijado = state.weightSet;
+      state = {
+        ...G.newState(hoy()),
+        weightKg: peso,
+        weightSet: fijado,
+        stepLengthM: paso,
+        permissionAsked: true,
+      };
       await guardarEstado();
       irAlActual = true;
       pintar();
@@ -300,7 +357,7 @@ async function accion(nombre) {
 
 async function iniciar() {
   const guardado = await cargar();
-  state = { ...G.newState(guardado?.startDate || hoy()), ...(guardado || {}) };
+  state = G.migrate(guardado, hoy());
   pintar();
   if (!state.permissionAsked && P.esNativa()) {
     state.permissionAsked = true;

@@ -358,3 +358,31 @@ textarea {
   color: var(--rojo);
   border-color: var(--rojo);
 }
+
+/* Penalizaciones y medallas */
+.mision.penal .xpchip {
+  color: var(--rojo);
+  border-color: var(--rojo);
+}
+.mision.penal.hecha .check {
+  background: var(--rojo);
+  border-color: var(--rojo);
+}
+.gran {
+  font-size: 56px;
+  line-height: 1.1;
+  color: var(--oro);
+  font-weight: bold;
+}
+.medallas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.medalla {
+  padding: 6px 10px;
+  border: 1px solid var(--oro);
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--oro);
+}
