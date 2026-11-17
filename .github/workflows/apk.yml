@@ -1,0 +1,61 @@
+name: Construir APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Pruebas de la lógica del juego
+        run: npm test
+
+      - name: Compilar la web
+        run: npm run build
+
+      - name: Crear el proyecto Android
+        run: npx cap add android
+
+      - name: Health Connect necesita minSdk 26
+        run: sed -i 's/minSdkVersion = .*/minSdkVersion = 26/' android/variables.gradle
+
+      - name: Número de versión
+        run: sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
+
+      - name: Sincronizar
+        run: npx cap sync android
+
+      - name: Compilar el APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Publicar el APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk tierra-media.apk
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest tierra-media.apk \
+            --title "Última versión" \
+            --notes "APK de prueba construido automáticamente (commit ${GITHUB_SHA::7})." \
+            --latest

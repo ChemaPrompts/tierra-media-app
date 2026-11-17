@@ -1,0 +1,360 @@
+:root {
+  --fondo: #14110d;
+  --tarjeta: #1f1a14;
+  --borde: #3a2f22;
+  --oro: #d4a94a;
+  --texto: #efe6d2;
+  --suave: #a39880;
+  --verde: #7fb069;
+  --rojo: #c9604a;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 640px;
+  margin: 0 auto;
+  padding-top: env(safe-area-inset-top);
+}
+
+#cabecera {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--borde);
+  background: linear-gradient(#241d14, var(--fondo));
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.resumen {
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--suave);
+}
+
+.nivel {
+  min-width: 64px;
+  text-align: center;
+  border: 2px solid var(--oro);
+  border-radius: 12px;
+  padding: 4px 8px;
+}
+.nivel small {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--suave);
+}
+.nivel b {
+  font-size: 1.7rem;
+  color: var(--oro);
+  line-height: 1;
+}
+
+.xp {
+  flex: 1;
+}
+.xp small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--suave);
+}
+
+.barra {
+  height: 12px;
+  background: #0d0b08;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.barra.fina {
+  height: 8px;
+}
+.barra i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #a8791f, var(--oro));
+}
+
+#vista {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+}
+
+#menu {
+  display: flex;
+  border-top: 1px solid var(--borde);
+  background: #100d09;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+#menu button {
+  flex: 1;
+  border: 0;
+  background: none;
+  color: var(--suave);
+  padding: 8px 0 6px;
+  font-size: 1.3rem;
+  font-family: inherit;
+}
+#menu button span {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
+#menu button.activo {
+  color: var(--oro);
+}
+
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.tarjeta h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: var(--oro);
+}
+.estado {
+  line-height: 1.4;
+}
+.tarjeta.peligro h3 {
+  color: var(--rojo);
+}
+
+.nota {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: var(--suave);
+}
+.centro {
+  text-align: center;
+}
+
+/* Ruta */
+.ruta {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 4px;
+  position: relative;
+}
+.ruta::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: var(--borde);
+}
+.ruta li {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 7px 0;
+}
+.ruta .ico {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--fondo);
+  border: 2px solid var(--borde);
+  font-size: 0.95rem;
+  z-index: 1;
+}
+.hito.hecho .ico {
+  border-color: var(--verde);
+}
+.hito.actual .ico {
+  border-color: var(--oro);
+  box-shadow: 0 0 10px #d4a94a66;
+}
+.hito.pendiente {
+  opacity: 0.6;
+}
+.cuerpo {
+  flex: 1;
+  min-width: 0;
+}
+.titulo {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.km {
+  font-size: 0.8rem;
+  color: var(--suave);
+}
+.req {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--oro);
+}
+.tramo .cuerpo small {
+  display: block;
+  margin-top: 4px;
+  color: var(--suave);
+  font-size: 0.78rem;
+}
+.tramo .ico {
+  border-color: var(--oro);
+}
+
+/* Misiones */
+.chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.chips button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid var(--borde);
+  background: var(--tarjeta);
+  color: var(--suave);
+  font-family: inherit;
+  font-size: 1rem;
+}
+.chips button.activo {
+  border-color: var(--oro);
+  color: var(--oro);
+}
+
+.mision {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 6px;
+  border: 0;
+  border-bottom: 1px solid var(--borde);
+  background: none;
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: left;
+}
+.mision:last-child {
+  border-bottom: 0;
+}
+.mision .check {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  color: var(--fondo);
+  font-weight: bold;
+}
+.mision.hecha .check {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+.mision .txt {
+  flex: 1;
+}
+.mision small {
+  display: block;
+  margin-top: 2px;
+  color: var(--suave);
+  font-size: 0.8rem;
+}
+.mision.hecha .txt {
+  opacity: 0.6;
+}
+.xpchip {
+  color: var(--oro);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Ajustes */
+label {
+  display: block;
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: var(--suave);
+}
+label input[type='number'] {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+label.casilla {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+input[type='number'],
+textarea {
+  background: #0d0b08;
+  color: var(--texto);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+textarea {
+  width: 100%;
+  margin-top: 8px;
+}
+.botones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.fila-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.fila-form input {
+  flex: 1;
+  min-width: 0;
+}
+.tarjeta button[data-accion] {
+  background: #2c2418;
+  color: var(--oro);
+  border: 1px solid var(--oro);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.peligro button[data-accion] {
+  color: var(--rojo);
+  border-color: var(--rojo);
+}
