@@ -346,6 +346,15 @@ async function accion(nombre) {
         stepLengthM: paso,
         permissionAsked: true,
       };
+      // Los pasos de hoy hasta este momento no cuentan para el viaje nuevo.
+      if (P.esNativa()) {
+        try {
+          const dias = await P.leerPasosDiarios(state.startDate);
+          state.base = Object.fromEntries(dias.map((d) => [d.date, d.steps]));
+        } catch {
+          /* sin permiso o sin Health Connect: se queda sin base */
+        }
+      }
       await guardarEstado();
       irAlActual = true;
       pintar();

@@ -163,6 +163,7 @@ export function newState(todayISO) {
     bankKm: 0,
     lostKm: 0,
     counted: {},
+    base: {},
     missions: {},
     permissionAsked: false,
   };
@@ -190,14 +191,16 @@ export function syncSteps(state, days) {
   const xp = totalXp(s.missions);
   for (const { date, steps } of days) {
     if (date < s.startDate) continue;
+    // `base` guarda los pasos que ya existían al reiniciar el viaje: no cuentan.
+    const efectivos = Math.max(0, steps - (s.base?.[date] ?? 0));
     const prev = s.counted[date] ?? 0;
-    if (steps <= prev) continue;
-    const gainKm = ((steps - prev) * s.stepLengthM) / 1000;
+    if (efectivos <= prev) continue;
+    const gainKm = ((efectivos - prev) * s.stepLengthM) / 1000;
     const r = addKm(s.km, gainKm, xp);
     s.km = r.km;
     if (s.bankSteps) s.bankKm = (s.bankKm || 0) + r.lost;
     else s.lostKm = (s.lostKm || 0) + r.lost;
-    s.counted[date] = steps;
+    s.counted[date] = efectivos;
   }
   releaseBank(s);
   const keys = Object.keys(s.counted).sort();

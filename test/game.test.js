@@ -218,3 +218,14 @@ test('estado nuevo: peso neutro sin fijar', () => {
   assert.equal(s.weightSet, false);
   assert.notEqual(s.weightKg, 92);
 });
+
+test('reiniciar: los pasos que ya había ese día no cuentan, los nuevos sí', () => {
+  let s = G.newState('2026-11-20');
+  s.base = { '2026-11-20': 6000 };
+  s = G.syncSteps(s, [{ date: '2026-11-20', steps: 6000 }]);
+  assert.equal(s.km, 0);
+  s = G.syncSteps(s, [{ date: '2026-11-20', steps: 7500 }]);
+  assert.ok(Math.abs(s.km - 1.125) < 1e-9);
+  s = G.syncSteps(s, [{ date: '2026-11-21', steps: 1000 }]);
+  assert.ok(Math.abs(s.km - 1.875) < 1e-9);
+});
