@@ -20,8 +20,8 @@ export const PASO_M_DEFECTO = 0.75;
 // 1.285, 1.480, 2.105, 2.360, 2.640, 2.675 y 2.865).
 export const HITOS = [
   { nombre: 'Hobbiton', km: 0, nota: 'El inicio del viaje, en la Comarca.' },
-  { nombre: 'Bosque Cerrado', km: 38, nota: 'Un bosque espeso al este de la Comarca, atajo hacia Los Gamos.' },
-  { nombre: 'Granja de Maggot', km: 77, nota: 'Campos y setas, con perros que imponen respeto.' },
+  { nombre: 'Bosque Cerrado', km: 40, nota: 'Un bosque espeso al este de la Comarca, atajo hacia Los Gamos.' },
+  { nombre: 'Granja de Maggot', km: 80, nota: 'Campos y setas, con perros que imponen respeto.' },
   { nombre: 'Cricava', km: 115, nota: 'Primera parada, a las puertas del Bosque Viejo.' },
   { nombre: 'Bosque Viejo', km: 140, nota: 'Árboles que no te quieren ahí.' },
   { nombre: 'Túmulos', km: 170, nota: 'Niebla y tumbas antiguas.' },

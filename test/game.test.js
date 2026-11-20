@@ -20,7 +20,7 @@ test('puertas: Hobbiton sin requisito, Cricava 3.070 XP (nivel 11), final = XP_M
   assert.equal(cri.nivel, 11);
   assert.deepEqual(
     G.PUERTAS.slice(1, 3).map((h) => [h.nombre, h.km, h.xp]),
-    [['Bosque Cerrado', 38, 1010], ['Granja de Maggot', 77, 2050]],
+    [['Bosque Cerrado', 40, 1070], ['Granja de Maggot', 80, 2130]],
   );
   assert.equal(XP_MAX, 76400);
   assert.equal(G.PUERTAS.at(-1).xp, XP_MAX);
@@ -29,17 +29,17 @@ test('puertas: Hobbiton sin requisito, Cricava 3.070 XP (nivel 11), final = XP_M
 });
 
 test('capKm: sin XP se llega al Bosque Cerrado y se espera allí', () => {
-  assert.equal(G.capKm(0), 38);
-  assert.equal(G.capKm(1010), 77);
-  assert.equal(G.capKm(2050), 115);
+  assert.equal(G.capKm(0), 40);
+  assert.equal(G.capKm(1070), 80);
+  assert.equal(G.capKm(2130), 115);
   assert.equal(G.capKm(3070), 140);
 });
 
 test('pasos con la puerta cerrada no suman más allá del hito', () => {
-  const r = G.addKm(30, 10, 0);
-  assert.equal(r.km, 38);
-  assert.ok(Math.abs(r.lost - 2) < 1e-9);
-  assert.equal(G.addKm(38, 10, 0).km, 38);
+  const r = G.addKm(30, 15, 0);
+  assert.equal(r.km, 40);
+  assert.ok(Math.abs(r.lost - 5) < 1e-9);
+  assert.equal(G.addKm(40, 10, 0).km, 40);
 });
 
 test('sincronizar no duplica pasos', () => {
@@ -60,21 +60,21 @@ test('pasos anteriores a la fecha de inicio se ignoran', () => {
 test('lleva al Bosque Cerrado y se queda esperando hasta tener el XP', () => {
   let s = fresh();
   s = G.syncSteps(s, [{ date: '2026-11-17', steps: 200000 }]);
-  assert.equal(s.km, 38);
+  assert.equal(s.km, 40);
   let st = G.journeyStatus(s.km, G.totalXp(s.missions));
   assert.ok(st.waiting);
   assert.equal(st.gate.nombre, 'Bosque Cerrado');
-  assert.equal(st.xpMissing, 1010);
+  assert.equal(st.xpMissing, 1070);
   // Los pasos se pierden por defecto
   assert.ok(s.lostKm > 0);
   s = G.syncSteps(s, [{ date: '2026-11-18', steps: 100 }]);
-  assert.equal(s.km, 38);
+  assert.equal(s.km, 40);
 });
 
 test('con reserva activada, los pasos sobrantes se aplican al abrir la puerta', () => {
   let s = { ...fresh(), bankSteps: true };
-  s = G.syncSteps(s, [{ date: '2026-11-17', steps: 200000 }]); // 150 km, tope 38
-  assert.equal(s.km, 38);
+  s = G.syncSteps(s, [{ date: '2026-11-17', steps: 200000 }]); // 150 km, tope 40
+  assert.equal(s.km, 40);
   assert.ok(s.bankKm > 100);
   // Hace falta XP: 15 días completos de misiones (160 XP/día) = 3.200
   for (let d = 1; d <= 20; d++) {
